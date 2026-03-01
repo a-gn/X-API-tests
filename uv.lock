@@ -9,6 +9,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "click" },
     { name = "pydantic" },
+    { name = "pygments" },
     { name = "requests" },
 ]
 
@@ -24,6 +25,7 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.3.1" },
     { name = "pydantic", specifier = ">=2.12.5" },
+    { name = "pygments", specifier = ">=2.19.2" },
     { name = "requests", specifier = ">=2.32.5" },
 ]
 

@@ -1,3 +1,4 @@
+- When reading docs online, start by checking in an `/llms.txt` entrypoint exists that would make it easier for you to navigate the docs.
 - Heavily use the X API documentation at https://docs.x.com/.
 - If unsure how to use `requests`, read its documentation at https://docs.python-requests.org/.
 - Make the code as simple as possible, only add what I ask for.
