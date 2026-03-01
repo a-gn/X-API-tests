@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write          # publish-unit-test-result-action
+      pull-requests: write   # publish-unit-test-result-action PR comments
+      security-events: write # upload-sarif for ruff results
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --all-packages --dev
+
+      - name: Ruff lint — library
+        id: ruff_library
+        continue-on-error: true
+        run: uv run --dev ruff check --output-format=sarif library/ > ruff-library.sarif
+
+      - name: Upload ruff SARIF — library
+        if: always()
+        uses: github/codeql-action/upload-sarif@85b88275909735f5bc23196090e03d2eb148b3de # v3.32.4
+        with:
+          sarif_file: ruff-library.sarif
+          category: ruff-library
+
+      - name: Ruff lint — terminal_ui
+        id: ruff_terminal_ui
+        continue-on-error: true
+        run: uv run --dev ruff check --output-format=sarif terminal_ui/ > ruff-terminal-ui.sarif
+
+      - name: Upload ruff SARIF — terminal_ui
+        if: always()
+        uses: github/codeql-action/upload-sarif@85b88275909735f5bc23196090e03d2eb148b3de # v3.32.4
+        with:
+          sarif_file: ruff-terminal-ui.sarif
+          category: ruff-terminal-ui
+
+      - name: Pyright — library
+        id: pyright_library
+        continue-on-error: true
+        working-directory: library
+        run: uv run --dev pyright
+
+      - name: Pyright — terminal_ui
+        id: pyright_terminal_ui
+        continue-on-error: true
+        working-directory: terminal_ui
+        run: uv run --dev pyright
+
+      - name: Tests — library
+        id: tests_library
+        continue-on-error: true
+        working-directory: library
+        run: uv run --dev pytest -v --tb=short -W error::UserWarning --junitxml=../junit-library.xml
+
+      - name: Tests — terminal_ui
+        id: tests_terminal_ui
+        continue-on-error: true
+        working-directory: terminal_ui
+        run: uv run --dev pytest -v --tb=short -W error::UserWarning --junitxml=../junit-terminal-ui.xml
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        with:
+          files: |
+            junit-library.xml
+            junit-terminal-ui.xml
+
+      - name: Fail if any step failed
+        if: |
+          steps.ruff_library.outcome == 'failure' ||
+          steps.ruff_terminal_ui.outcome == 'failure' ||
+          steps.pyright_library.outcome == 'failure' ||
+          steps.pyright_terminal_ui.outcome == 'failure' ||
+          steps.tests_library.outcome == 'failure' ||
+          steps.tests_terminal_ui.outcome == 'failure'
+        run: exit 1
