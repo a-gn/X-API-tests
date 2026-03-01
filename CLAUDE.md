@@ -1,0 +1,6 @@
+- Heavily use the X API documentation at https://docs.x.com/.
+- If unsure how to use `requests`, read its documentation at https://docs.python-requests.org/.
+- Make the code as simple as possible, only add what I ask for.
+- Before finishing any non-trivial changes, run `validate.sh` with `uv run --dev`. Fix any errors or warnings and re-run until everything is fixed.
+- ALWAYS TYPE CHECK. DO NOT SUPPRESS TYPE CHECKING ERRORS. USE CORRECT FIXES AND GOOD PRACTICES.
+- ALWAYS REPORT ERRORS. DO NOT SUPPRESS ERRORS UNLESS ASKED TO DO SO. USE EXCEPTIONS TO REPORT ISSUES.
