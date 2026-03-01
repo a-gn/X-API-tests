@@ -4,3 +4,6 @@
 - Before finishing any non-trivial changes, run `uv run --dev python validate.py`. Fix any errors or warnings and re-run until everything is fixed.
 - ALWAYS TYPE CHECK. DO NOT SUPPRESS TYPE CHECKING ERRORS. USE CORRECT FIXES AND GOOD PRACTICES.
 - ALWAYS REPORT ERRORS. DO NOT SUPPRESS ERRORS UNLESS ASKED TO DO SO. USE EXCEPTIONS TO REPORT ISSUES.
+- Always manage dependencies with `uv`.  Put development, testing, linting dependencies into the `--dev` group. Use `uv run` (`--dev` if needed) to run scripts and tools.
+- Use the standard library, then internal code, then existing dependencies, then only add dependencies if needed and reasonable. Do it with `uv add`.
+- Use click for CLIs, validate strictly. Make required arguments required, and exclusive arguments exclusive.

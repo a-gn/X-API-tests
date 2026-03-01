@@ -1,6 +1,8 @@
 {
-    "allowedUrls": [
-        "https://docs.x.com/",
-        "https://docs.python-requests.org/"
-    ]
+    "permissions": {
+        "allow": [
+            "WebFetch(domain:docs.x.com)",
+            "WebFetch(domain:docs.python-requests.org)"
+        ]
+    }
 }
