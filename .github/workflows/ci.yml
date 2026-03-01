@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      checks: write          # publish-unit-test-result-action
-      pull-requests: write   # publish-unit-test-result-action PR comments
       security-events: write # upload-sarif for ruff results
 
     steps:
@@ -74,13 +72,9 @@ jobs:
         working-directory: terminal_ui
         run: uv run --dev pytest -v --tb=short -W error::UserWarning --junitxml=../junit-terminal-ui.xml
 
-      - name: Publish test results
+      - name: Report test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
-        with:
-          files: |
-            junit-library.xml
-            junit-terminal-ui.xml
+        run: uv run .github/scripts/report_tests.py junit-library.xml junit-terminal-ui.xml
 
       - name: Fail if any step failed
         if: |
