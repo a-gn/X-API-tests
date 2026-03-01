@@ -146,3 +146,17 @@ def load_tweets(
         pagination_token = next_token
 
     return tweets
+
+
+def delete_tweet(tweet_id: str, creds: Credentials) -> None:
+    """Delete a single tweet by ID.
+
+    @param tweet_id: Numeric tweet ID string
+    @param creds: API credentials. bearer_token must have tweet.write scope.
+    @raises requests.HTTPError: If the API request fails
+    """
+    response = requests.delete(
+        f"https://api.x.com/2/tweets/{tweet_id}",
+        headers=creds.to_http_headers(),
+    )
+    response.raise_for_status()

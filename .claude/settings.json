@@ -2,7 +2,8 @@
     "permissions": {
         "allow": [
             "WebFetch(domain:docs.x.com)",
-            "WebFetch(domain:docs.python-requests.org)"
+            "WebFetch(domain:docs.python-requests.org)",
+            "WebFetch(domain:textual.textualize.io)"
         ]
     }
 }

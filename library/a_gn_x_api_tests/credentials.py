@@ -27,7 +27,7 @@ def load_credentials(path: Path | None = None) -> Credentials:
     @raises pydantic.ValidationError: If credentials are invalid
     """
     if path is None:
-        path = Path(__file__).parent.parent / "CREDENTIALS.json"
+        path = Path("CREDENTIALS.json")
 
     with path.open() as f:
         data = json.load(f)
