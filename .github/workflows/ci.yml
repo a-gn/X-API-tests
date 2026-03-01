@@ -33,7 +33,7 @@ jobs:
 
       - name: Upload ruff SARIF — library
         if: always()
-        uses: github/codeql-action/upload-sarif@85b88275909735f5bc23196090e03d2eb148b3de # v3.32.4
+        uses: github/codeql-action/upload-sarif@e34fc2711fb7964ca6850c8a8382121f34745f3b # v4.32.4
         with:
           sarif_file: ruff-library.sarif
           category: ruff-library
@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload ruff SARIF — terminal_ui
         if: always()
-        uses: github/codeql-action/upload-sarif@85b88275909735f5bc23196090e03d2eb148b3de # v3.32.4
+        uses: github/codeql-action/upload-sarif@e34fc2711fb7964ca6850c8a8382121f34745f3b # v4.32.4
         with:
           sarif_file: ruff-terminal-ui.sarif
           category: ruff-terminal-ui
