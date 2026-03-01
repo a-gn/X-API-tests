@@ -42,7 +42,7 @@ def open_db(path: Path | str = _DEFAULT_DB) -> sqlite3.Connection:
     if path_str != ":memory:":
         db_path = Path(path_str)
         db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path_str)
+    conn = sqlite3.connect(path_str, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute(_CREATE_TWEET_CACHE)

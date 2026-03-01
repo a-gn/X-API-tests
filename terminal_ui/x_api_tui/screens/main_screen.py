@@ -207,4 +207,4 @@ class MainScreen(Screen[None]):
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
         if event.state == WorkerState.ERROR:
             error = str(event.worker.error)
-            self.app.call_from_thread(self._set_status, f"[red]Error: {error}[/red]")
+            self._set_status(f"[red]Error: {error}[/red]")

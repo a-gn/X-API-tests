@@ -74,3 +74,56 @@ def test_username_is_case_insensitive(conn: sqlite3.Connection) -> None:
     store_tweets(conn, "Alice", START, END, [TWEET])
     assert is_cached(conn, "alice", START, END)
     assert len(get_tweets(conn, "ALICE", START, END)) == 1
+
+
+def test_get_tweets_newest_first(conn: sqlite3.Connection) -> None:
+    older: dict[str, object] = {
+        **TWEET,
+        "id": "10",
+        "created_at": "2024-01-10T00:00:00Z",
+    }
+    newer: dict[str, object] = {
+        **TWEET,
+        "id": "20",
+        "created_at": "2024-01-20T00:00:00Z",
+    }
+    store_tweets(conn, "alice", START, END, [older, newer])
+    result = get_tweets(conn, "alice", START, END)
+    assert result[0]["id"] == "20"
+    assert result[1]["id"] == "10"
+
+
+def test_get_tweets_date_boundary_included(conn: sqlite3.Connection) -> None:
+    # Tweet at exactly end-of-day boundary should be included.
+    at_boundary: dict[str, object] = {
+        **TWEET,
+        "id": "99",
+        "created_at": "2024-01-31T23:59:59Z",
+    }
+    store_tweets(conn, "alice", START, END, [at_boundary])
+    result = get_tweets(conn, "alice", START, END)
+    assert len(result) == 1
+
+
+def test_get_tweets_outside_range_excluded(conn: sqlite3.Connection) -> None:
+    outside: dict[str, object] = {
+        **TWEET,
+        "id": "99",
+        "created_at": "2024-02-01T00:00:00Z",
+    }
+    store_tweets(conn, "alice", START, END, [outside])
+    result = get_tweets(conn, "alice", START, END)
+    assert result == []
+
+
+def test_store_empty_list_records_fetch_log(conn: sqlite3.Connection) -> None:
+    store_tweets(conn, "alice", START, END, [])
+    assert is_cached(conn, "alice", START, END)
+
+
+def test_invalidate_range_does_not_remove_tweets(conn: sqlite3.Connection) -> None:
+    store_tweets(conn, "alice", START, END, [TWEET])
+    invalidate_range(conn, "alice", START, END)
+    # fetch_log cleared but tweet still in cache
+    result = get_tweets(conn, "alice", START, END)
+    assert len(result) == 1
