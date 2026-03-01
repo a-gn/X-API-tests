@@ -1,9 +1,6 @@
 """Tests for TweetListWidget selection logic."""
 
-from unittest.mock import MagicMock
-
 from textual.app import App, ComposeResult
-from textual.events import MouseDown
 
 from x_api_tui.widgets.tweet_list import TweetListWidget, TweetRow
 
@@ -34,13 +31,9 @@ class ListApp(App[None]):
         yield TweetListWidget(id="list")
 
 
-def _make_click(widget: TweetRow, shift: bool = False) -> MouseDown:
-    """Build a fake MouseDown event targeting the given row."""
-    event = MagicMock(spec=MouseDown)
-    event.widget = widget
-    event.shift = shift
-    event.stop = MagicMock()
-    return event
+def _click(widget: TweetListWidget, row: TweetRow, shift: bool = False) -> None:
+    """Simulate a TweetRow click via the Clicked message."""
+    widget.on_tweet_row_clicked(TweetRow.Clicked(row, shift))
 
 
 async def test_populate_creates_rows() -> None:
@@ -74,7 +67,7 @@ async def test_single_click_selects_row() -> None:
         widget.populate(TWEETS)
         await pilot.pause()
         rows = list(widget.query(TweetRow))
-        widget.on_mouse_down(_make_click(rows[0]))
+        _click(widget, rows[0])
         assert widget.get_selected_ids() == frozenset({"1"})
 
 
@@ -84,8 +77,8 @@ async def test_single_click_toggles_off() -> None:
         widget.populate(TWEETS)
         await pilot.pause()
         rows = list(widget.query(TweetRow))
-        widget.on_mouse_down(_make_click(rows[0]))
-        widget.on_mouse_down(_make_click(rows[0]))
+        _click(widget, rows[0])
+        _click(widget, rows[0])
         assert widget.get_selected_ids() == frozenset()
 
 
@@ -95,8 +88,8 @@ async def test_shift_click_selects_range_forward() -> None:
         widget.populate(TWEETS)
         await pilot.pause()
         rows = list(widget.query(TweetRow))
-        widget.on_mouse_down(_make_click(rows[0]))
-        widget.on_mouse_down(_make_click(rows[2], shift=True))
+        _click(widget, rows[0])
+        _click(widget, rows[2], shift=True)
         assert widget.get_selected_ids() == frozenset({"1", "2", "3"})
 
 
@@ -106,8 +99,8 @@ async def test_shift_click_selects_range_backward() -> None:
         widget.populate(TWEETS)
         await pilot.pause()
         rows = list(widget.query(TweetRow))
-        widget.on_mouse_down(_make_click(rows[2]))
-        widget.on_mouse_down(_make_click(rows[0], shift=True))
+        _click(widget, rows[2])
+        _click(widget, rows[0], shift=True)
         assert widget.get_selected_ids() == frozenset({"1", "2", "3"})
 
 
@@ -118,7 +111,7 @@ async def test_shift_click_without_prior_click_is_single_select() -> None:
         await pilot.pause()
         rows = list(widget.query(TweetRow))
         # No prior click → shift has no effect
-        widget.on_mouse_down(_make_click(rows[1], shift=True))
+        _click(widget, rows[1], shift=True)
         assert widget.get_selected_ids() == frozenset({"2"})
 
 
@@ -128,7 +121,7 @@ async def test_populate_resets_selection() -> None:
         widget.populate(TWEETS)
         await pilot.pause()
         rows = list(widget.query(TweetRow))
-        widget.on_mouse_down(_make_click(rows[0]))
+        _click(widget, rows[0])
         # Re-populate clears selection
         widget.populate(TWEETS)
         await pilot.pause()
@@ -173,7 +166,7 @@ async def test_click_posts_selection_changed_message() -> None:
         await pilot.pause()
         received.clear()
         rows = list(widget.query(TweetRow))
-        widget.on_mouse_down(_make_click(rows[0]))
+        _click(widget, rows[0])
         await pilot.pause()
         assert len(received) == 1
         assert received[0].selected_ids == frozenset({"1"})
@@ -184,7 +177,5 @@ async def test_click_outside_row_does_nothing() -> None:
         widget = pilot.app.query_one(TweetListWidget)
         widget.populate(TWEETS)
         await pilot.pause()
-        # Widget itself (not a TweetRow) as target
-        event = _make_click(widget)  # type: ignore[arg-type]
-        widget.on_mouse_down(event)
+        # No click posted → selection stays empty
         assert widget.get_selected_ids() == frozenset()

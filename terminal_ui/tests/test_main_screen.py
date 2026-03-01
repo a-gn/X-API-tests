@@ -1,12 +1,11 @@
 """Tests for MainScreen."""
 
 import sqlite3
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import requests
 from a_gn_x_api_tests.credentials import Credentials
 from textual.app import App
-from textual.events import MouseDown
 from textual.widgets import Button, Label
 
 from x_api_tui.cache import open_db
@@ -48,12 +47,9 @@ class MainApp(App[None]):
         self.push_screen(MainScreen("testuser", CREDS, self._db))
 
 
-def _make_click(widget: TweetRow, shift: bool = False) -> MouseDown:
-    event = MagicMock(spec=MouseDown)
-    event.widget = widget
-    event.shift = shift
-    event.stop = MagicMock()
-    return event
+def _click(list_widget: TweetListWidget, row: TweetRow, shift: bool = False) -> None:
+    """Simulate a TweetRow click via the Clicked message."""
+    list_widget.on_tweet_row_clicked(TweetRow.Clicked(row, shift))
 
 
 async def _type_dates(pilot: object, start: str, end: str) -> None:
@@ -189,7 +185,7 @@ async def test_selection_enables_delete_button() -> None:
             await pilot.pause()
             widget = pilot.app.screen.query_one(TweetListWidget)
             rows = list(widget.query(TweetRow))
-            widget.on_mouse_down(_make_click(rows[0]))
+            _click(widget, rows[0])
             await pilot.pause()
             assert not pilot.app.screen.query_one("#delete-btn", Button).disabled
 
@@ -211,7 +207,7 @@ async def test_cancel_confirm_no_deletion() -> None:
             await pilot.pause()
             widget = pilot.app.screen.query_one(TweetListWidget)
             rows = list(widget.query(TweetRow))
-            widget.on_mouse_down(_make_click(rows[0]))
+            _click(widget, rows[0])
             await pilot.pause()
             await pilot.click("#delete-btn")
             await pilot.pause()
@@ -234,7 +230,7 @@ async def test_confirm_delete_calls_api() -> None:
             await pilot.pause()
             widget = pilot.app.screen.query_one(TweetListWidget)
             rows = list(widget.query(TweetRow))
-            widget.on_mouse_down(_make_click(rows[0]))
+            _click(widget, rows[0])
             await pilot.pause()
             # Open confirm modal
             await pilot.click("#delete-btn")
@@ -260,7 +256,7 @@ async def test_confirm_delete_shows_success_status() -> None:
             await pilot.pause()
             widget = pilot.app.screen.query_one(TweetListWidget)
             rows = list(widget.query(TweetRow))
-            widget.on_mouse_down(_make_click(rows[0]))
+            _click(widget, rows[0])
             await pilot.pause()
             await pilot.click("#delete-btn")
             await pilot.pause()
@@ -289,8 +285,8 @@ async def test_partial_delete_failure_status() -> None:
             await pilot.pause()
             widget = pilot.app.screen.query_one(TweetListWidget)
             rows = list(widget.query(TweetRow))
-            widget.on_mouse_down(_make_click(rows[0]))
-            widget.on_mouse_down(_make_click(rows[1], shift=True))
+            _click(widget, rows[0])
+            _click(widget, rows[1], shift=True)
             await pilot.pause()
             await pilot.click("#delete-btn")
             await pilot.pause()

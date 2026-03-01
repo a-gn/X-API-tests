@@ -4,7 +4,6 @@ Originally written by Claude Sonnet 4.6 on 2026/03/01
 """
 
 from textual.app import ComposeResult
-from textual.events import MouseDown
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
@@ -30,6 +29,14 @@ class TweetRow(Widget):
 
     selected: reactive[bool] = reactive(False)
 
+    class Clicked(Message):
+        """Posted when this row is clicked."""
+
+        def __init__(self, row: "TweetRow", shift: bool) -> None:
+            super().__init__()
+            self.row = row
+            self.shift = shift
+
     def __init__(self, tweet: dict[str, object], index: int) -> None:
         super().__init__()
         self._tweet = tweet
@@ -43,6 +50,13 @@ class TweetRow(Widget):
 
     def watch_selected(self, selected: bool) -> None:
         self.set_class(selected, "selected")
+
+    def on_mouse_down(self, event: object) -> None:
+        from textual.events import MouseDown
+
+        assert isinstance(event, MouseDown)
+        event.stop()
+        self.post_message(self.Clicked(self, event.shift))
 
     @property
     def tweet_id(self) -> str:
@@ -86,22 +100,10 @@ class TweetListWidget(Widget):
     def get_selected_ids(self) -> frozenset[str]:
         return frozenset(r.tweet_id for r in self._rows if r.selected)
 
-    def on_mouse_down(self, event: MouseDown) -> None:
-        """Handle click with optional shift for range selection."""
-        # Walk up from the event target to find the TweetRow ancestor.
-        target = event.widget
-        clicked_row: TweetRow | None = None
-        while target is not None:
-            if isinstance(target, TweetRow):
-                clicked_row = target
-                break
-            target = target.parent  # type: ignore[assignment]
-
-        if clicked_row is None:
-            return
-
+    def on_tweet_row_clicked(self, event: TweetRow.Clicked) -> None:
+        """Handle a click on a TweetRow child."""
         event.stop()
-
+        clicked_row = event.row
         clicked_index = clicked_row.index
 
         if event.shift and self._last_clicked_index is not None:
