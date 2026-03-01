@@ -7,11 +7,15 @@ import pydantic
 class Credentials(pydantic.BaseModel):
     """X API credentials."""
 
-    consumerKey: str
-    secretKey: str
-    bearerToken: str
+    consumer_key: str
+    secret_key: str
+    bearer_token: str
 
-    model_config = pydantic.ConfigDict(frozen=True)
+    model_config = pydantic.ConfigDict(frozen=True, populate_by_name=True)
+
+    def to_http_headers(self) -> dict[str, str]:
+        """Make HTTP headers to set in an HTTP request to authenticate to the X API."""
+        return {"Authorization": f"Bearer {self.bearer_token}"}
 
 
 def load_credentials(path: Path | None = None) -> Credentials:
